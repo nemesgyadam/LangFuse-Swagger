@@ -1,0 +1,14 @@
+services:
+  code_review:
+    container_name: langfuse-swagger
+    image: nemesgyadam/langfuse-swagger:latest
+    environment:
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=${LANGFUSE_HOST}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_KEY=42
+      - TAGS=
+    ports:
+      - 8000:8000
+    command: [ "python", "main.py" ]

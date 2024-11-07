@@ -1,0 +1,5 @@
+Analyze this LLM prompt:
+{context}
+
+Write a short text description (3 sentences max) for an API endpoint that extracts this prompt. 
+No need to state that it is an API endpoint, just describe what the endpoint does.
