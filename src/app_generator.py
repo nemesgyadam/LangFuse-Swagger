@@ -16,6 +16,9 @@ from src.utils.api_key import get_api_key
 # Configure logging
 def setup_logging():
     """Configure logging with both file and console handlers"""
+    # Get log level from environment variable, default to INFO
+    log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+    
     # Create logs directory if it doesn't exist
     os.makedirs('logs', exist_ok=True)
     
@@ -38,9 +41,12 @@ def setup_logging():
     
     # Configure root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(logging.INFO)
+    root_logger.setLevel(getattr(logging, log_level))  # Set level from environment
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Logging configured with level: {log_level}")
     
     return root_logger
 

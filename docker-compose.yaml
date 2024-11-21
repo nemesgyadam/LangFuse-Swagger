@@ -9,6 +9,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - API_KEY=42
       - TAGS=
+      - LOG_LEVEL=INFO
     ports:
       - 8000:8000
     command: [ "python", "main.py" ]

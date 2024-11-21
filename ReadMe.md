@@ -76,6 +76,8 @@ There are two ways to run the server:
 | `OPENAI_API_KEY` | OpenAI API key for model access | - | Yes |
 | `API_KEY` | API key for endpoint authentication | "42" | No |
 | `LANGFUSE_TAGS` | Comma-separated list of tags to filter prompts | - | No |
+| `LOG_LEVEL` | Detail level of log | INFO | No |
+
 
 
 ## 🛠️ Future Enhancements
