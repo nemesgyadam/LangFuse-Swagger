@@ -81,6 +81,10 @@ There are two ways to run the server:
 ## 🛠️ Future Enhancements
 
 - [ ] Implement Custom Handlers for additional language model workflows and integrations.
+- [ ] Async response
+- [ ] Different LLM support
+- [ ] Flag to turn off description generation
+- [ ] Check for langfuse updates
 
 ## 📝 License
 
