@@ -87,6 +87,7 @@ There are two ways to run the server:
 - [ ] Different LLM support
 - [ ] Flag to turn off description generation
 - [ ] Check for langfuse updates
+- [ ] Sync langfuse prompt versions, and prompts
 
 ## 📝 License
 
