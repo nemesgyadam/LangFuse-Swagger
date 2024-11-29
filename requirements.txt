@@ -1,7 +1,8 @@
-openai
 fastapi
 uvicorn
 python-dotenv
 langfuse
 langchain
 langchain_openai
+langchain_anthropic
+langchain_google_genai
