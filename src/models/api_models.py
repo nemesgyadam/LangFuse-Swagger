@@ -47,16 +47,13 @@ class ResponseModelGenerator:
 
         if output_structure:
             properties = output_structure.get("properties", {})
-            required_fields = set(output_structure.get("required", []))
 
             model_fields = {}
             for key, value in properties.items():
                 json_type = value.get("type", "string")
                 field_type = type_mapping.get(json_type, Any)
                 description = value.get("description", f"{key} field")
-                default = ... if key in required_fields else None
-
-                model_fields[key] = (field_type, Field(default, description=description))
+                model_fields[key] = (field_type, Field(description=description))
 
         else:
             model_fields = {
