@@ -14,6 +14,7 @@ A powerful, universal FastAPI server that automatically generates endpoints with
 - **LangChain Integration**: Connect seamlessly with LangChain  for enhanced language model functionality.
 - **Configurable Parameters**: Configure model type, temperature, and other variables directly through Langfuse.
 - **Trace Logging**: Records detailed logs of interactions and traces with Langfuse, providing transparency and tracking for each review.
+- **Structured Responses via `output_structure`**: Define the API response format using JSON Schema in Langfuse.  
 
 ## 🛠️ Setup
 
@@ -37,6 +38,29 @@ A powerful, universal FastAPI server that automatically generates endpoints with
    - Filter which prompts are used to generate endpoints using the `LANGFUSE_TAGS` environment variable
    - Specify a comma-separated list of tags (e.g., `LANGFUSE_TAGS="swagger,api,production"`)
    - Prompts with matching tags will be used to create API endpoints, if no tags specified all prompts will be used.
+
+## 📋 Defining Response Structure with `output_structure`  
+Now, you can define structured responses using the `output_structure` field in Langfuse Config.  
+
+### Example Configuration:
+```yaml
+"output_structure": {
+    "title": "ChatBot",
+    "description": "Answer to the user.",
+    "type": "object",
+    "properties": {
+      "answer": {
+        "type": "string",
+        "description": "The answer to the user's question"
+      },
+      "summary": {
+        "type": "string",
+        "description": "Summary of the answer"
+      }
+    },
+    "required": ["answer", "summary"]
+}
+```
 
 ## 🚀 Usage
 

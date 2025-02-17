@@ -1,5 +1,5 @@
 from pydantic import BaseModel, create_model, Field
-from typing import List
+from typing import List, Dict, Any
 
 class RequestModelGenerator:
     @staticmethod
@@ -29,12 +29,45 @@ class RequestModelGenerator:
         )
         return Model
 
-class ResponseModel(BaseModel):
-    response: str = Field(..., description="The output of the Agent")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "response": "Super Smart LLM output",
-            }
+
+class ResponseModelGenerator:
+    @staticmethod
+    def create_response_model(prompt_name: str, output_structure: Dict[str, Any] = None):
+        """Dynamically create a structured response model based on Langfuse config"""
+
+        type_mapping = {
+            "string": str,
+            "integer": int,
+            "float": float,
+            "boolean": bool,
+            "array": list,
+            "object": dict,
+            "tuple": tuple
         }
+
+        if output_structure:
+            properties = output_structure.get("properties", {})
+            required_fields = set(output_structure.get("required", []))
+
+            model_fields = {}
+            for key, value in properties.items():
+                json_type = value.get("type", "string")
+                field_type = type_mapping.get(json_type, Any)
+                description = value.get("description", f"{key} field")
+                default = ... if key in required_fields else None
+
+                model_fields[key] = (field_type, Field(default, description=description))
+
+        else:
+            model_fields = {
+                "response": (str, Field(..., description="The output of the Agent")),
+            }
+
+        Model = create_model(f"{prompt_name}Response", **model_fields)
+        Model.Config = type(
+            "Config",
+            (),
+            {"json_schema_extra": {"example": output_structure or {"response": "Super Smart LLM output"}}},
+        )
+        return Model
+

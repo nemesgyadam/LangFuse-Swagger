@@ -8,12 +8,12 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime
 from dotenv import load_dotenv
 from typing import Dict
-from src.models.api_models import RequestModelGenerator, ResponseModel
+from src.models.api_models import RequestModelGenerator, ResponseModelGenerator
 from src.services.prompt_handler import PromptHandler
 from src.utils.langfuse_utils import get_prompt_variables, get_project_name
 from src.utils.api_key import get_api_key
 
-# Configure logging
+
 def setup_logging():
     """Configure logging with both file and console handlers"""
     # Get log level from environment variable, default to INFO
@@ -132,6 +132,7 @@ class PromptEndpointGenerator:
                 description = await self.prompt_handler.run_prompt(
                     "prompts/extract_description.txt",
                     self.langfuse.get_prompt(prompt_name).prompt,
+                    self.langfuse.get_prompt(prompt_name).config.get("model_name")
                 )
                 self.logger.debug(f"Retrieved description for {prompt_name}")
                 return description
@@ -161,17 +162,16 @@ class PromptEndpointGenerator:
             self.prompt_config.items(), descriptions
         ):
             variables = meta_data["variables"]
+            output_structure = self.langfuse.get_prompt(prompt_name).config.get("output_structure", None)
             self.logger.info(f"Creating endpoint for prompt: {prompt_name}")
             self.logger.debug(f"Description for {prompt_name}: {description[:100]}...")
-
             try:
-                # Create the endpoint handler
                 handler = self._generate_endpoint_handler(prompt_name, variables)
 
                 # Register the endpoint
                 self.app.post(
                     f"/prompt/{prompt_name.lower()}",
-                    response_model=ResponseModel,
+                    response_model=ResponseModelGenerator.create_response_model(prompt_name, output_structure),
                     summary=f"Compile a {prompt_name} prompt with variables: {', '.join(variables)}",
                     description=description,
                     tags=["Prompts"],
