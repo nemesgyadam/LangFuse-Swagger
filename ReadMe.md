@@ -89,6 +89,9 @@ There are two ways to run the server:
 - [ ] Check for langfuse updates
 - [ ] Sync langfuse prompt versions, and prompts
 
+## Bugs
+- [ ] Frontend: . input results error
+- [ ] Frontend: handle multiple user inputs (before output)
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for more details.
