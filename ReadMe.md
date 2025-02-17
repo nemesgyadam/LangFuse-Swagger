@@ -41,13 +41,12 @@ A powerful, universal FastAPI server that automatically generates endpoints with
 
 ## 📋 Defining Response Structure with `output_structure`  
 Now, you can define structured responses using the `output_structure` field in Langfuse Config.  
+Sturctured output is based on [langchain Structured output](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)
+
 
 ### Example Configuration:
 ```yaml
 "output_structure": {
-    "title": "ChatBot",
-    "description": "Answer to the user.",
-    "type": "object",
     "properties": {
       "answer": {
         "type": "string",
@@ -57,8 +56,7 @@ Now, you can define structured responses using the `output_structure` field in L
         "type": "string",
         "description": "Summary of the answer"
       }
-    },
-    "required": ["answer", "summary"]
+    }
 }
 ```
 
