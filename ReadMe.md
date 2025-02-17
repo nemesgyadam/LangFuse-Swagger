@@ -41,12 +41,17 @@ A powerful, universal FastAPI server that automatically generates endpoints with
 
 ## 📋 Defining Response Structure with `output_structure`  
 Now, you can define structured responses using the `output_structure` field in Langfuse Config.  
-Sturctured output is based on [langchain Structured output](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)
+Sturctured output is based on [langchain Structured output](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/).
 
+### Why are `title`, `description` and `type` required?
+When defining `output_structure`, these fields are necessary because the response format is treated as a tool call in LangChain.
 
 ### Example Configuration:
 ```yaml
 "output_structure": {
+    "title": "Answer",
+    "description": "The answer and the summary must be uppercase.",
+    "type": "object",
     "properties": {
       "answer": {
         "type": "string",
