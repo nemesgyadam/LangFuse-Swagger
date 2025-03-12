@@ -20,6 +20,7 @@ A powerful, universal FastAPI server that automatically generates endpoints with
 
 1. **API Key Management**:
    - Store your OpenAI API key as an environment variable or set it up directly in `docker-compose`.
+   - API keys provided in the request will override the corresponding environment variables.
    
 2. **Langfuse Project Setup**:
    - Create a Langfuse project and configure it to generate prompts.

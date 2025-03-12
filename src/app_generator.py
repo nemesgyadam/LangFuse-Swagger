@@ -99,6 +99,17 @@ class PromptEndpointGenerator:
         self.prompt_handler = PromptHandler(self.langfuse, self.prompt_config, self.logger)
         self._generate_endpoints()
 
+    def _extract_and_set_the_api_keys(self, input_data):
+        """
+        If input_data contains OPENAI_API_KEY or ANTHROPIC_API_KEY,
+        it overrides the corresponding environment variables in the code.
+        """
+        if hasattr(input_data, "OPENAI_API_KEY") and input_data.OPENAI_API_KEY:
+            os.environ["OPENAI_API_KEY"] = input_data.OPENAI_API_KEY
+
+        if hasattr(input_data, "ANTHROPIC_API_KEY") and input_data.ANTHROPIC_API_KEY:
+            os.environ["ANTHROPIC_API_KEY"] = input_data.ANTHROPIC_API_KEY
+
     def _generate_endpoint_handler(self, prompt_name: str, variables: list):
         """Generate an endpoint handler for a specific prompt"""
         self.logger.debug(f"Generating endpoint handler for prompt: {prompt_name}")
@@ -110,6 +121,8 @@ class PromptEndpointGenerator:
 
         async def handler(input_data: request_model):
             self.logger.info(f"Handling request for prompt: {prompt_name}")
+            self._extract_and_set_the_api_keys(input_data)
+
             try:
                 result = await self.prompt_handler.handle_prompt(
                     prompt_name, input_data, variables
