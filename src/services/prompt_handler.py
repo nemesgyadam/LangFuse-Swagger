@@ -18,7 +18,7 @@ class PromptHandler:
         self.logger = logger
         self.logger.info("Initialized PromptHandler")
 
-    def _create_chain(self, prompt_name: str, is_chat: bool):
+    def _create_chain(self, prompt_name: str, is_chat: bool, api_key: str):
         """Create a Langchain chain from Langfuse prompt"""
         self.logger.debug(
             f"Creating chain for prompt '{prompt_name}' (is_chat={is_chat})"
@@ -50,6 +50,7 @@ class PromptHandler:
             config = langfuse_prompt.config or {}
             model_args = {
                 "model": config.get("model_name", "gpt-4o-mini"),
+                "api_key": api_key,
                 "temperature": float(config.get("temperature", 0.7)),
                 "output_structure": config.get("output_structure"),
             }
@@ -128,7 +129,7 @@ class PromptHandler:
             metadata={"interface": "Swagger"},
         )
 
-    async def handle_prompt(self, prompt_name: str, input_data: Any, variables: List[str]):
+    async def handle_prompt(self, prompt_name: str, input_data: Any, variables: List[str], api_key: str):
         """Handle prompt execution and tracing"""
         self.logger.info(f"Handling prompt: {prompt_name}")
 
@@ -140,7 +141,7 @@ class PromptHandler:
             self.logger.debug(f"Creating chain components for {prompt_name}")
 
             is_chat = self.prompt_config[prompt_name]["is_chat"]
-            components = self._create_chain(prompt_name, is_chat=is_chat)
+            components = self._create_chain(prompt_name, is_chat=is_chat, api_key=api_key)
 
             # Create chain components
             if len(components) == 3:

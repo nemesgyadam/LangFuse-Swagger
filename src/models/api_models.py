@@ -17,13 +17,9 @@ class RequestModelGenerator:
             for var_name in variables
         }
 
-        model_fields["OPENAI_API_KEY"] = (
+        model_fields["API_KEY"] = (
             Optional[str],
             Field(None, description="Optional OpenAI API Key", example=""),
-        )
-        model_fields["ANTHROPIC_API_KEY"] = (
-            Optional[str],
-            Field(None, description="Optional Anthropic API Key", example=""),
         )
 
         Model = create_model(f"{prompt_name}Request", **model_fields)

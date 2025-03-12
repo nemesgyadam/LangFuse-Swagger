@@ -49,6 +49,7 @@ class LLMFactory:
     def create_llm(model: Optional[str] = None, 
                    temperature: float = 0.0,
                    output_structure: Optional[dict] = None,
+                   api_key: Optional[str] = None,
                    **kwargs) -> Any:
         """
         Create an LLM instance based on the model name.
@@ -66,6 +67,8 @@ class LLMFactory:
         # Detect provider from model name
         provider = LLMFactory.detect_provider(model) if model else "openai"
 
+        extra_kwargs = {"api_key": api_key} if api_key is not None else {}
+
         # Use default model if none specified
         if not model:
             model = LLMFactory.DEFAULT_MODELS[provider]
@@ -75,6 +78,7 @@ class LLMFactory:
             llm = ChatOpenAI(
                 model=model,
                 temperature=temperature,
+                **extra_kwargs,
                 **kwargs
             )
             
@@ -82,6 +86,7 @@ class LLMFactory:
             llm = ChatAnthropic(
                 model=model,
                 temperature=temperature,
+                **extra_kwargs,
                 **kwargs
             )
             
@@ -89,6 +94,7 @@ class LLMFactory:
             llm = ChatGoogleGenerativeAI(
                 model=model,
                 temperature=temperature,
+                **extra_kwargs,
                 **kwargs
             )
             
@@ -105,9 +111,9 @@ class LLMFactory:
         return llm
 
 
-def get_llm(model: str = "", temperature: float = 0.0, output_structure: Optional[dict] = None, **kwargs) -> Any:
+def get_llm(model: str = "", api_key: Optional[str] = None, temperature: float = 0.0, output_structure: Optional[dict] = None, **kwargs) -> Any:
     """
     Simple function to get an LLM instance.
     Just pass the model name and it will figure out the provider.
     """
-    return LLMFactory.create_llm(model, temperature, output_structure=output_structure, **kwargs)
+    return LLMFactory.create_llm(model, temperature, output_structure=output_structure, api_key=api_key, **kwargs)
