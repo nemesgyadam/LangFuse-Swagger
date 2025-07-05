@@ -3,47 +3,44 @@ from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from typing import Optional, Dict, Any
 import json
+from src.utils.models.chatopenrouter import ChatOpenRouter
 
 class LLMFactory:
     """Factory class to create LLM instances based on model name."""
-    
-    # Model name patterns for different providers
-    MODEL_PATTERNS = {
-        "gpt": "openai",
-        "claude": "anthropic",
-        "gemini": "google_vertexai",
-        "text-": "openai",  # for text-davinci etc
-        "ft:gpt": "openai",  # for fine-tuned models
-        "j2": "anthropic",   # for potential future claude models
-    }
-    
-    # Default models for each provider
-    DEFAULT_MODELS = {
-        "openai": "gpt-4o-mini",
-        "anthropic": "claude-3-sonnet",
-        "google_vertexai": "gemini-pro"
-    }
 
     @staticmethod
-    def detect_provider(model: str) -> str:
+    def prepare_extra_kwargs(output_structure: dict, api_key: str = None) -> dict:
         """
-        Detect the provider based on the model name.
-        
-        Args:
-            model (str): Name of the model
-            
-        Returns:
-            str: Provider name
-        """
-        if not model:
-            return "openai"  # default provider
-            
-        model_lower = model.lower()
-        for pattern, provider in LLMFactory.MODEL_PATTERNS.items():
-            if model_lower.startswith(pattern):
-                return provider
-                
-        raise ValueError(f"Unable to detect provider for model: {model}")
+            Transforms the output_structure into the appropriate JSON schema for extra_kwargs.
+            If the api_key is provided, it is also added to the dictionary.
+
+            :param output_structure: The expected output structure containing field names and their types.
+            :param api_key: Optional API key to be added to extra_kwargs.
+            :return: A dictionary formatted according to the extra_kwargs structure.
+            """
+        extra_kwargs = {}
+
+        if output_structure:
+            extra_kwargs["extra_body"] = {
+                "response_format": {
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": output_structure["name"],
+                        "strict": True,
+                        "schema": {
+                            "type": "object",
+                            "properties": output_structure["properties"],
+                            "required": list(output_structure["properties"].keys()),
+                            "additionalProperties": False
+                        }
+                    }
+                }
+            }
+
+        if api_key is not None:
+            extra_kwargs["api_key"] = api_key
+
+        return extra_kwargs
 
     @staticmethod
     def create_llm(model: Optional[str] = None, 
@@ -64,50 +61,9 @@ class LLMFactory:
         Returns:
             An instance of the appropriate LLM
         """
-        # Detect provider from model name
-        provider = LLMFactory.detect_provider(model) if model else "openai"
+        extra_kwargs = LLMFactory.prepare_extra_kwargs(output_structure=output_structure, api_key=api_key)
 
-        extra_kwargs = {"api_key": api_key} if api_key is not None else {}
-
-        # Use default model if none specified
-        if not model:
-            model = LLMFactory.DEFAULT_MODELS[provider]
-        
-        # Initialize the appropriate LLM
-        if provider == "openai":
-            llm = ChatOpenAI(
-                model=model,
-                temperature=temperature,
-                **extra_kwargs,
-                **kwargs
-            )
-            
-        elif provider == "anthropic":
-            llm = ChatAnthropic(
-                model=model,
-                temperature=temperature,
-                **extra_kwargs,
-                **kwargs
-            )
-            
-        elif provider == "google":
-            llm = ChatGoogleGenerativeAI(
-                model=model,
-                temperature=temperature,
-                **extra_kwargs,
-                **kwargs
-            )
-            
-        else:
-            raise ValueError(f"Unsupported LLM provider: {provider}")
-
-        if output_structure:
-            try:
-                json_schema = json.loads(output_structure) if isinstance(output_structure, str) else output_structure
-                llm = llm.with_structured_output(json_schema)
-            except json.JSONDecodeError:
-                raise ValueError("Invalid JSON schema for structured output")
-
+        llm = ChatOpenRouter(model_name=model, temperature=temperature, **extra_kwargs)
         return llm
 
 
