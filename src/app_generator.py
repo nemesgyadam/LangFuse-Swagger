@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Security
-from langfuse.client import Langfuse
+from langfuse import Langfuse
 from langfuse.callback import CallbackHandler
 import os
 import asyncio

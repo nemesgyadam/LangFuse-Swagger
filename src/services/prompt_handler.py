@@ -1,6 +1,6 @@
 from langchain.schema import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langfuse.client import Langfuse
+from langfuse import Langfuse
 from fastapi import HTTPException
 from typing import Dict, Any, List
 import logging
