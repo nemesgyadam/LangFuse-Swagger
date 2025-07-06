@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 python-dotenv
-langfuse
+langfuse>=3.1.2
 langchain
 langchain_openai
 langchain_anthropic
