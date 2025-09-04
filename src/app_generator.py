@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Security
-from langfuse.client import Langfuse
+from langfuse import Langfuse
 from langfuse.callback import CallbackHandler
 import os
 import asyncio
@@ -99,6 +99,19 @@ class PromptEndpointGenerator:
         self.prompt_handler = PromptHandler(self.langfuse, self.prompt_config, self.logger)
         self._generate_endpoints()
 
+    def _extract_api_key(self, input_data):
+        """
+        Extracts the API key from the given input data.
+
+        Args:
+            input_data (object): An object that may contain an `API_KEY` attribute.
+
+        Returns:
+            str or None: The extracted API key if present, otherwise None.
+        """
+        if hasattr(input_data, "API_KEY") and input_data.API_KEY:
+            return input_data.API_KEY
+
     def _generate_endpoint_handler(self, prompt_name: str, variables: list):
         """Generate an endpoint handler for a specific prompt"""
         self.logger.debug(f"Generating endpoint handler for prompt: {prompt_name}")
@@ -110,9 +123,11 @@ class PromptEndpointGenerator:
 
         async def handler(input_data: request_model):
             self.logger.info(f"Handling request for prompt: {prompt_name}")
+            api_key_info = self._extract_api_key(input_data)
+
             try:
                 result = await self.prompt_handler.handle_prompt(
-                    prompt_name, input_data, variables
+                    prompt_name, input_data, variables, api_key_info
                 )
                 self.logger.info(f"Successfully processed prompt: {prompt_name}")
                 return result

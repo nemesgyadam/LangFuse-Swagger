@@ -1,10 +1,10 @@
 from langchain.schema import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langfuse.client import Langfuse
+from langfuse import Langfuse
 from fastapi import HTTPException
 from typing import Dict, Any, List
 import logging
-
+import json
 from src.llm_factory import get_llm
 import traceback
 
@@ -18,7 +18,7 @@ class PromptHandler:
         self.logger = logger
         self.logger.info("Initialized PromptHandler")
 
-    def _create_chain(self, prompt_name: str, is_chat: bool):
+    def _create_chain(self, prompt_name: str, is_chat: bool, api_key: str):
         """Create a Langchain chain from Langfuse prompt"""
         self.logger.debug(
             f"Creating chain for prompt '{prompt_name}' (is_chat={is_chat})"
@@ -50,6 +50,7 @@ class PromptHandler:
             config = langfuse_prompt.config or {}
             model_args = {
                 "model": config.get("model_name", "gpt-4o-mini"),
+                "api_key": api_key,
                 "temperature": float(config.get("temperature", 0.7)),
                 "output_structure": config.get("output_structure"),
             }
@@ -110,12 +111,8 @@ class PromptHandler:
 
     def _extract_model_info_structured_output(self, model):
         """Extract model name and parameters safely."""
-        try:
-            model_name = model.first.model_name
-            model_params = {"maxTokens": model.first.max_tokens, "temperature": model.first.temperature}
-        except:
-            model_name = model.first.model
-            model_params = {"maxTokens": model.first.max_tokens, "temperature": model.first.temperature}
+        model_name = model.model_name
+        model_params = {"temperature": model.temperature}
         return model_name, model_params
 
     def _record_generation(self, trace, prompt_name, model_name, model_params, prompt, input_dict):
@@ -128,10 +125,9 @@ class PromptHandler:
             metadata={"interface": "Swagger"},
         )
 
-    async def handle_prompt(self, prompt_name: str, input_data: Any, variables: List[str]):
+    async def handle_prompt(self, prompt_name: str, input_data: Any, variables: List[str], api_key: str):
         """Handle prompt execution and tracing"""
         self.logger.info(f"Handling prompt: {prompt_name}")
-
         try:
             # Convert input data to dictionary
             input_dict = {var: getattr(input_data, var) for var in variables}
@@ -140,7 +136,7 @@ class PromptHandler:
             self.logger.debug(f"Creating chain components for {prompt_name}")
 
             is_chat = self.prompt_config[prompt_name]["is_chat"]
-            components = self._create_chain(prompt_name, is_chat=is_chat)
+            components = self._create_chain(prompt_name, is_chat=is_chat, api_key=api_key)
 
             # Create chain components
             if len(components) == 3:
@@ -164,13 +160,13 @@ class PromptHandler:
             # Execute chain
             self.logger.debug(f"Executing chain for {prompt_name}")
             response = chain.invoke(input=input_dict)
-
             generation.end(output=response)
             trace.update(output=response)
 
             self.logger.info(f"Successfully processed prompt {prompt_name}. Trace URL: {trace.get_trace_url()}")
 
-            return {"response": response} if len(components) == 3 else response
+            return {"response": response} if len(components) == 3 else json.loads(response.content)
+
         except Exception as e:
             tb = traceback.extract_tb(e.__traceback__)
             filename, lineno, _, _ = tb[-1]

@@ -19,7 +19,8 @@ A powerful, universal FastAPI server that automatically generates endpoints with
 ## 🛠️ Setup
 
 1. **API Key Management**:
-   - Store your OpenAI API key as an environment variable or set it up directly in `docker-compose`.
+   - Store your OpenRouter API key as an environment variable or set it up directly in `docker-compose`.
+   - If an API key (`API_KEY`) is provided in the request, it will be used for the LLM call.
    
 2. **Langfuse Project Setup**:
    - Create a Langfuse project and configure it to generate prompts.
@@ -49,9 +50,7 @@ When defining `output_structure`, these fields are necessary because the respons
 ### Example Configuration:
 ```yaml
 "output_structure": {
-    "title": "Answer",
-    "description": "The answer and the summary must be uppercase.",
-    "type": "object",
+    "name": "Answer",
     "properties": {
       "answer": {
         "type": "string",
@@ -95,15 +94,16 @@ There are two ways to run the server:
 
 ## 🔧 Environment Variables
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `LANGFUSE_PUBLIC_KEY` | Public key for Langfuse authentication | - | Yes |
-| `LANGFUSE_SECRET_KEY` | Secret key for Langfuse authentication | - | Yes |
-| `LANGFUSE_HOST` | Langfuse host URL | https://cloud.langfuse.com | No |
-| `OPENAI_API_KEY` | OpenAI API key for model access | - | Yes |
-| `API_KEY` | API key for endpoint authentication | "42" | No |
+| Variable | Description                                    | Default | Required |
+|----------|------------------------------------------------|---------|----------|
+| `LANGFUSE_PUBLIC_KEY` | Public key for Langfuse authentication         | - | Yes |
+| `LANGFUSE_SECRET_KEY` | Secret key for Langfuse authentication         | - | Yes |
+| `LANGFUSE_HOST` | Langfuse host URL                              | https://cloud.langfuse.com | No |
+| `OPENROUTER_API_KEY` | OpenRouter API key for model access            | - | Yes |
+| `OPENROUTER_API_BASE` | your OpenRouter's url                          | - | Yes |
+| `API_KEY` | API key for endpoint authentication            | "42" | No |
 | `LANGFUSE_TAGS` | Comma-separated list of tags to filter prompts | - | No |
-| `LOG_LEVEL` | Detail level of log | INFO | No |
+| `LOG_LEVEL` | Detail level of log                            | INFO | No |
 
 
 
