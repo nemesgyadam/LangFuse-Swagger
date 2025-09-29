@@ -7,6 +7,13 @@ import logging
 import json
 from src.llm_factory import get_llm
 import traceback
+from typing import Optional
+from src.utils.cost_tracker import CostTracker
+
+try:
+    import tiktoken  # type: ignore
+except Exception:  # pragma: no cover
+    tiktoken = None  # Fallback if tokenizer is unavailable
 
 
 class PromptHandler:
@@ -125,6 +132,34 @@ class PromptHandler:
             metadata={"interface": "Swagger"},
         )
 
+    def _estimate_tokens(self, text: str, model_name: Optional[str]) -> int:
+        """Estimate token count for given text and model.
+
+        Tries to use tiktoken when available; otherwise falls back to a crude heuristic.
+        """
+        if not text:
+            return 0
+        if tiktoken is None:
+            # Heuristic approximation: ~4 chars per token
+            return max(1, len(text) // 4)
+
+        # Normalize model name to an OpenAI-compatible encoding when possible
+        encoding_name = "cl100k_base"
+        try:
+            if model_name and isinstance(model_name, str):
+                # Strip provider prefix used by OpenRouter, e.g. "openai/gpt-4o-mini" -> "gpt-4o-mini"
+                normalized = model_name.split("/")[-1]
+                encoding = tiktoken.encoding_for_model(normalized)
+            else:
+                encoding = tiktoken.get_encoding(encoding_name)
+        except Exception:
+            encoding = tiktoken.get_encoding(encoding_name)
+
+        try:
+            return len(encoding.encode(text))
+        except Exception:
+            return max(1, len(text) // 4)
+
     async def handle_prompt(self, prompt_name: str, input_data: Any, variables: List[str], api_key: str):
         """Handle prompt execution and tracing"""
         self.logger.info(f"Handling prompt: {prompt_name}")
@@ -160,7 +195,20 @@ class PromptHandler:
             # Execute chain
             self.logger.debug(f"Executing chain for {prompt_name}")
             response = chain.invoke(input=input_dict)
-            generation.end(output=response)
+            # Estimate usage for cost tracking in Langfuse
+            try:
+                formatted_input = prompt.format(**input_dict)
+                output_text = response.content if hasattr(response, "content") else str(response)
+                # Use CostTracker for usage + cost
+                tracker = CostTracker(model_name)
+                usage = tracker.compute_usage_and_cost(
+                    input_messages=[formatted_input],
+                    output_text=output_text,
+                )
+                generation.end(output=response, usage=usage)
+            except Exception as usage_err:
+                self.logger.warning(f"Failed to attach usage to generation: {str(usage_err)}")
+                generation.end(output=response)
             trace.update(output=response)
 
             self.logger.info(f"Successfully processed prompt {prompt_name}. Trace URL: {trace.get_trace_url()}")
